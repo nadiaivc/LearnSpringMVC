@@ -16,8 +16,9 @@
 <div id="toolbar">
     <canvas id="c1" width="800" height="500"></canvas>
     <input type="color" id="color">
-    <button class="button" onclick="circle()" value="circle">Circle</button>
-    <h2>${message}</h2>
+    <button class="button" onclick="circle_new()" value="Circle">Circle</button>
+    <button class="button" onclick="triangle_new()" value="Triangle">Three</button>
+<h2>${message}</h2>
 </div>
 
 </body>

@@ -18,6 +18,7 @@
     <input type="color" id="color">
     <button class="button" onclick="circle_new()" value="Circle">Circle</button>
     <button class="button" onclick="triangle_new()" value="Triangle">Three</button>
+    <button class="button" onclick="move()" value="Move">Move</button>
 <h2>${message}</h2>
 </div>
 

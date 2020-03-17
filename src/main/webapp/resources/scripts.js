@@ -1,6 +1,7 @@
 var canvas;
 var ctx;
 var myColor;
+var circle_id, triangle_id;//константный индикатор конкретного объекта (на случай если удаляем, меняем имя, что-то должно бытьп остоянным)
 var count_triangle, triangle_obj=[];
 var count_circle, circle_obj=[];
 var figure = 0;
@@ -24,7 +25,10 @@ class Figure {
 class Circle extends Figure{
     constructor(name, x, y, radius){
         super(name, x, y);
+        this.child = [];
         this.radius = radius;
+        this.id = circle_id;
+        circle_id++;
     }
 
     isCursorInFigure() {
@@ -51,6 +55,8 @@ class Triangle extends Figure{
     constructor(name, x, y, size){
         super(name, x, y);
         this.size = size;//катет
+        this.id = triangle_id;
+        triangle_id++;
     }
 
     isCursorInFigure(v1, v2, v3) {
@@ -63,20 +69,23 @@ class Triangle extends Figure{
     }
 
     draw(){
-        ctx.beginPath();
-        ctx.moveTo(this.x,this.y);
-        ctx.lineTo(this.x+this.size,this.y);
-        ctx.lineTo(this.x,this.y+this.size);
-        ctx.closePath();
-        document.getElementById('color').oninput = function(){
-            myColor = this.value;
-        }
-        ctx.fillStyle = myColor;
-        ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(this.x,this.y);
+            ctx.lineTo(this.x+this.size,this.y);
+            ctx.lineTo(this.x,this.y+this.size);
+            ctx.closePath();
+            document.getElementById('color').oninput = function(){
+                myColor = this.value;
+            }
+            ctx.fillStyle = myColor;
+            ctx.fill();
+
     }
 }
 
 function onload() {
+    circle_id = 0;
+    triangle_id = 0;
     count_triangle=0;
     count_circle=0;
     canvas = document.getElementById('c1');
@@ -91,6 +100,19 @@ function onload() {
         if (selected) {
             selected.x += event.movementX;
             selected.y += event.movementY;
+            for(var move_child = 0; move_child < selected.child.length; move_child++){
+            {
+                var id_child = selected.child[move_child];
+            }
+                for(var search = 0; search<count_triangle; search++){
+                    if (triangle_obj[search].id == id_child) {
+                        triangle_obj[search].x += event.movementX;
+                        triangle_obj[search].y += event.movementY;
+                    }
+                }
+            }
+
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             triangle_obj.forEach(n => n.draw());
             circle_obj.forEach(n => n.draw());
@@ -100,9 +122,19 @@ function onload() {
         mouse.down = true;
         switch(figure){
             case 1:
-                triangle_obj[count_triangle] = new Triangle(count_triangle,mouse.x, mouse.y,50);
-                triangle_obj[count_triangle].draw();
-                count_triangle++;
+                var have_circle = false;
+                var n;
+                circle_obj.forEach(n => {
+                    if (n.isCursorInFigure()) {
+                        have_circle = true;
+                        n.child.push(triangle_id);
+                    }
+                })
+                if (have_circle){ //рисуем треугольник только в области круга
+                    triangle_obj[count_triangle] = new Triangle(count_triangle,mouse.x, mouse.y,50);
+                    triangle_obj[count_triangle].draw();
+                    count_triangle++;
+                }
                 break;
             case 2:
                 circle_obj[count_circle] = new Circle(count_circle,mouse.x,mouse.y,50);
@@ -111,11 +143,11 @@ function onload() {
                 break;
             case 3://не создаем новые фигуры, просто можно двигать существующие
                 if (!selected) {
-                    triangle_obj.forEach(n => {
+                    /*triangle_obj.forEach(n => {
                         if (n.isCursorInFigure({x: n.x, y: n.y}, {x: n.x + n.size, y: n.y}, {x: n.x, y: n.y + n.size})) {
                             selected = n
                         }
-                    })
+                    })*/
                     circle_obj.forEach(n => {
                         if (n.isCursorInFigure()) {
                             selected = n

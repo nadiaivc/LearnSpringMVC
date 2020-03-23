@@ -6,6 +6,9 @@ var count_triangle, triangle_obj=[];
 var count_circle, circle_obj=[];
 var figure = 0;
 var selected = false;
+var name_now;
+var length_name;
+var resize;//circle or triangle
 
 var mouse = {
     x:0,
@@ -19,6 +22,7 @@ class Figure {
         this.y = y;
         this.color = 'red';
         this.name = name;
+        this.name_length = length_name;
     }
 }
 
@@ -34,6 +38,13 @@ class Circle extends Figure{
     isCursorInFigure() {
         return Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x, 2) <= Math.pow(this.radius,2);
     }
+    isBigger(){
+        return Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x, 2) <= Math.pow(this.radius + 5,2)&&
+            Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x, 2) >= Math.pow(this.radius - 4,2);
+    }
+    isSmaller(){
+        return Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x, 2) <= Math.pow(this.radius - 5,2);
+    }
 
     draw(){
         ctx.beginPath();
@@ -44,6 +55,10 @@ class Circle extends Figure{
         }
         ctx.strokeStyle = myColor;
         ctx.stroke();
+
+        ctx.fillStyle = "#FFF";
+        ctx.font = "italic 14pt Arial";
+        ctx.fillText(this.name, this.x - this.radius/2, this.y);
     }
 }
 
@@ -68,6 +83,19 @@ class Triangle extends Figure{
         return ((b1 == b2) && (b2 == b3));
     }
 
+    whichPoint(){
+        if (Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x, 2) <= Math.pow(10,2))
+            return 1;
+        if (Math.pow(mouse.y - (this.y + this.size), 2) + Math.pow( mouse.x - this.x, 2) <= Math.pow(10,2))
+            return 2;
+        if (Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x - this.size, 2) <= Math.pow(10,2))
+            return 3;
+        else if (Math.pow(mouse.y - (this.y + this.size/3), 2) + Math.pow( mouse.x - this.x - this.size/3, 2) <= Math.pow(this.size/3,2))
+            return 4;
+        else return 0;
+    }
+
+
     draw(){
             ctx.beginPath();
             ctx.moveTo(this.x,this.y);
@@ -79,6 +107,10 @@ class Triangle extends Figure{
             }
             ctx.fillStyle = myColor;
             ctx.fill();
+            ctx.fillStyle = "#FFF";
+            ctx.font = "italic 14pt Arial";
+            ctx.fillText(this.name, this.x + this.size/5, this.y + this.size/2);
+
 
     }
 }
@@ -98,16 +130,38 @@ function onload() {
         mouse.y = event.offsetY;
 
         if (selected) {
-            selected.x += event.movementX;
-            selected.y += event.movementY;
-            for(var move_child = 0; move_child < selected.child.length; move_child++){
-            {
-                var id_child = selected.child[move_child];
+            if (figure==4){
+                if (resize==0){
+                    if(selected.isBigger()){
+                        selected.radius+=5;
+                    }
+                    if(selected.isSmaller()){
+                        selected.radius-=5;
+                    }
+                }
+                else {
+                   var point = selected.whichPoint();
+                   if (point!=0) {
+                       if (point == 4) {
+                           selected.size -= 5;
+                       }
+                       else
+                           selected.size += 5;
+                   }
+                }
             }
-                for(var search = 0; search<count_triangle; search++){
-                    if (triangle_obj[search].id == id_child) {
-                        triangle_obj[search].x += event.movementX;
-                        triangle_obj[search].y += event.movementY;
+            else{
+                selected.x += event.movementX;
+                selected.y += event.movementY;
+                for(var move_child = 0; move_child < selected.child.length; move_child++){
+                {
+                    var id_child = selected.child[move_child];
+                }
+                    for(var search = 0; search<count_triangle; search++){
+                        if (triangle_obj[search].id == id_child) {
+                            triangle_obj[search].x += event.movementX;
+                            triangle_obj[search].y += event.movementY;
+                        }
                     }
                 }
             }
@@ -131,13 +185,13 @@ function onload() {
                     }
                 })
                 if (have_circle){ //рисуем треугольник только в области круга
-                    triangle_obj[count_triangle] = new Triangle(count_triangle,mouse.x, mouse.y,50);
+                    triangle_obj[count_triangle] = new Triangle(name_now,mouse.x, mouse.y,50);
                     triangle_obj[count_triangle].draw();
                     count_triangle++;
                 }
                 break;
             case 2:
-                circle_obj[count_circle] = new Circle(count_circle,mouse.x,mouse.y,50);
+                circle_obj[count_circle] = new Circle(name_now,mouse.x,mouse.y,50);
                 circle_obj[count_circle].draw();
                 count_circle++;
                 break;
@@ -155,6 +209,24 @@ function onload() {
                     })
                 }
                 break;
+            case 4:
+                if (!selected){
+                    triangle_obj.forEach(n => {
+                        if (n.isCursorInFigure({x: n.x, y: n.y}, {x: n.x + n.size, y: n.y}, {x: n.x, y: n.y + n.size})) {
+                            selected = n;
+                            resize = 1;
+                        }
+                    })
+                    if (!selected){
+                        circle_obj.forEach(n => {
+                            if (n.isCursorInFigure()) {
+                                selected = n;
+                                resize = 0;
+                            }
+                        })
+                    }
+
+                }
         }
     };
     canvas.onmouseup = function(event){
@@ -163,6 +235,12 @@ function onload() {
     };
 }
 
+
+function figure_name() {
+    name_now = document.getElementById('inp1').value
+    length_name = ctx.measureText(name_now).width;
+};
+
 function triangle_new() {
     figure = 1;
 };
@@ -170,7 +248,9 @@ function triangle_new() {
 function circle_new() {
     figure = 2;
 };
-
+function size() {
+    figure = 4;
+};
 function move() {
     figure = 3;
 };

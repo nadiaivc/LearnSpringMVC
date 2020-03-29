@@ -9,6 +9,9 @@ var selected = false;
 var name_now;
 var length_name;
 var resize;//circle or triangle
+var c1;
+var CHANGE=5;
+
 
 var mouse = {
     x:0,
@@ -23,6 +26,7 @@ class Figure {
         this.color = 'red';
         this.name = name;
         this.name_length = length_name;
+        this.big_name = false;//для hover у длинных имен
     }
 }
 
@@ -46,6 +50,37 @@ class Circle extends Figure{
         return Math.pow(mouse.y - this.y, 2) + Math.pow( mouse.x - this.x, 2) <= Math.pow(this.radius - 5,2);
     }
 
+    DoBigger(){
+        this.radius += CHANGE;
+        for (var move_child = 0; move_child < this.child.length; move_child++) {
+            {
+                var id_child = this.child[move_child];
+            }
+            for (var search = 0; search < count_triangle; search++) {
+                if (triangle_obj[search].id == id_child) {
+                    triangle_obj[search].x += CHANGE/2;
+                    triangle_obj[search].y += CHANGE/2;
+                }
+            }
+        }
+
+    }
+
+    DoSmaller(){
+        this.radius -= CHANGE;
+        for (var move_child = 0; move_child < this.child.length; move_child++) {
+            {
+                var id_child = this.child[move_child];
+            }
+            for (var search = 0; search < count_triangle; search++) {
+                if (triangle_obj[search].id == id_child) {
+                    triangle_obj[search].x -= CHANGE/2;
+                    triangle_obj[search].y -= CHANGE/2;
+                }
+            }
+        }
+    }
+
     draw(){
         ctx.beginPath();
         ctx.arc(this.x,this.y, this.radius, 0, 2*Math.PI, true);
@@ -55,10 +90,13 @@ class Circle extends Figure{
         }
         ctx.strokeStyle = myColor;
         ctx.stroke();
-
         ctx.fillStyle = "#FFF";
-        ctx.font = "italic 14pt Arial";
-        ctx.fillText(this.name, this.x - this.radius/2, this.y);
+        ctx.font = "italic 12pt Arial";
+        if (this.name_length > this.radius*2)
+            this.big_name = true;
+        else{
+        ctx.fillText(this.name, this.x - this.radius, this.y);
+        }
     }
 }
 
@@ -108,9 +146,12 @@ class Triangle extends Figure{
             ctx.fillStyle = myColor;
             ctx.fill();
             ctx.fillStyle = "#FFF";
-            ctx.font = "italic 14pt Arial";
-            ctx.fillText(this.name, this.x + this.size/5, this.y + this.size/2);
-
+            ctx.font = "italic 12pt Arial";
+            if (this.name_length > this.size - 5)
+            this.big_name = true;
+            else {
+                ctx.fillText(this.name, this.x + this.size / 5, this.y + this.size / 2);
+            }
 
     }
 }
@@ -118,46 +159,44 @@ class Triangle extends Figure{
 function onload() {
     circle_id = 0;
     triangle_id = 0;
-    count_triangle=0;
-    count_circle=0;
+    count_triangle = 0;
+    count_circle = 0;
     canvas = document.getElementById('c1');
     ctx = canvas.getContext('2d');
     myColor = 'red';
+    c1 = document.querySelector("canvas");
 
-
-    canvas.onmousemove = function(event){
+    canvas.onmousemove = function (event) {
         mouse.x = event.offsetX;
         mouse.y = event.offsetY;
-
         if (selected) {
-            if (figure==4){
-                if (resize==0){
-                    if(selected.isBigger()){
-                        selected.radius+=5;
+            if (figure == 4) {//resize
+                if (resize == 0) {//circle
+                    if (selected.isBigger()) {
+                        selected.DoBigger();
+
                     }
-                    if(selected.isSmaller()){
-                        selected.radius-=5;
+                    if (selected.isSmaller()) {
+                        selected.DoSmaller();
+                    }
+                } else {//triangle
+                    var point = selected.whichPoint();
+                    if (point != 0) {//курсор в какой-то из точек
+                        if (point == 4) {//внутри треугольника, но не около точек
+                            selected.size -= CHANGE;
+                        } else
+                            selected.size += CHANGE;
                     }
                 }
-                else {
-                   var point = selected.whichPoint();
-                   if (point!=0) {
-                       if (point == 4) {
-                           selected.size -= 5;
-                       }
-                       else
-                           selected.size += 5;
-                   }
-                }
-            }
-            else{
+            } else {   //move
+
                 selected.x += event.movementX;
                 selected.y += event.movementY;
-                for(var move_child = 0; move_child < selected.child.length; move_child++){
-                {
-                    var id_child = selected.child[move_child];
-                }
-                    for(var search = 0; search<count_triangle; search++){
+                for (var move_child = 0; move_child < selected.child.length; move_child++) {
+                    {
+                        var id_child = selected.child[move_child];
+                    }
+                    for (var search = 0; search < count_triangle; search++) {
                         if (triangle_obj[search].id == id_child) {
                             triangle_obj[search].x += event.movementX;
                             triangle_obj[search].y += event.movementY;
@@ -167,11 +206,37 @@ function onload() {
             }
 
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);//очищаем и рисуем заново все
             triangle_obj.forEach(n => n.draw());
             circle_obj.forEach(n => n.draw());
         }
+
+        circle_obj.forEach(n => {//hover для длинных имен
+            if (n.big_name == true) {
+                if (n.isCursorInFigure()) {
+                    ctx.fillText(n.name, n.x - n.radius, n.y);
+                } else {
+                    reload();
+                    }
+                }
+            })
+        triangle_obj.forEach(n => {//hover для длинных имен
+            if (n.big_name == true) {
+                if (n.isCursorInFigure({x: n.x, y: n.y}, {x: n.x + n.size, y: n.y}, {x: n.x, y: n.y + n.size})) {
+                    ctx.fillText(n.name, n.x + n.size / 5, n.y + n.size / 2);
+                } else {
+                    reload();
+                }
+            }
+        })
     };
+
+    function reload(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        circle_obj.forEach(n => n.draw());
+        triangle_obj.forEach(n => n.draw());
+    }
+
     canvas.onmousedown = function(event){//выбираем фигуру
         mouse.down = true;
         switch(figure){
@@ -209,7 +274,7 @@ function onload() {
                     })
                 }
                 break;
-            case 4:
+            case 4://увеличить/уменьшить
                 if (!selected){
                     triangle_obj.forEach(n => {
                         if (n.isCursorInFigure({x: n.x, y: n.y}, {x: n.x + n.size, y: n.y}, {x: n.x, y: n.y + n.size})) {

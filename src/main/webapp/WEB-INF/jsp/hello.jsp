@@ -10,6 +10,7 @@
 <head>
     <title>Hello</title>
     <link rel="stylesheet" href="resources/style.css">
+    <script src="resources/jquery.js" type="text/javascript"> </script>
     <script src="resources/scripts.js" type="text/javascript"> </script>
 </head>
 <body onload="onload()">

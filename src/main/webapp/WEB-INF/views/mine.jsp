@@ -9,9 +9,9 @@
 <html>
 <head>
     <title>Hello</title>
-    <link rel="stylesheet" href="resources/style.css">
-    <script src="resources/jquery.js" type="text/javascript"> </script>
-    <script src="resources/scripts.js" type="text/javascript"> </script>
+    <link rel="stylesheet" href="${contextPath}/resources/css/style.css">
+    <script src="${contextPath}/resources/js/jquery.js" type="text/javascript"> </script>
+    <script src="${contextPath}/resources/js/scripts.js" type="text/javascript"> </script>
 </head>
 <body onload="onload()">
 <div id="toolbar">
@@ -25,7 +25,6 @@
         Введите имя: <input type="text" id="inp1">
         <button onclick="figure_name()">OK</button>
     </p>
-<h2>${message}</h2>
 </div>
 
 </body>

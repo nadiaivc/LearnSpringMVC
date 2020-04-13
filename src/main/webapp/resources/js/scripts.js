@@ -11,6 +11,9 @@ var length_name;
 var resize;//circle or triangle
 var c1;
 var CHANGE=5;
+var first_for_line;
+var second_for_line;
+var count_for_line = 0;
 
 
 var mouse = {
@@ -109,6 +112,7 @@ class Triangle extends Figure{
         super(name, x, y);
         this.size = size;//катет
         this.id = triangle_id;
+        this.lines = [];
         triangle_id++;
     }
 
@@ -145,6 +149,20 @@ class Triangle extends Figure{
             }
             ctx.fillStyle = myColor;
             ctx.fill();
+            for (var move_line = 0; move_line < this.lines.length; move_line++)
+            {
+                for (var search = 0; search < count_triangle; search++) {//подумать, что сделать с поиском, если номера будут идти нестандартно (тип 1,5,100..)(рассмотреть последствия удаления объектов)
+                    if (triangle_obj[search].id == this.lines[move_line]) {
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(triangle_obj[search].x, triangle_obj[search].y);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+
+            }
+
             ctx.fillStyle = "#FFF";
             ctx.font = "italic 12pt Arial";
             if (this.name_length > this.size - 5)
@@ -205,10 +223,7 @@ function onload() {
                 }
             }
 
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);//очищаем и рисуем заново все
-            triangle_obj.forEach(n => n.draw());
-            circle_obj.forEach(n => n.draw());
+            reload();
         }
 
         circle_obj.forEach(n => {//hover для длинных имен
@@ -290,8 +305,27 @@ function onload() {
                             }
                         })
                     }
-
                 }
+                break;
+            case 5://нарисовать линию между 2мя треугольниками
+                if (!selected){
+                    triangle_obj.forEach(n => {
+                        if (n.isCursorInFigure({x: n.x, y: n.y}, {x: n.x + n.size, y: n.y}, {x: n.x, y: n.y + n.size})) {
+                            if (count_for_line == 0){
+                                first_for_line = n;
+                                count_for_line++;
+                            }
+                            else if (count_for_line == 1){
+                                second_for_line = n;
+                                first_for_line.lines.push(second_for_line.id);
+                                second_for_line.lines.push(first_for_line.id);
+                                count_for_line = 0;
+                                reload();
+                            }
+                        }
+                    })
+                }
+                break;
         }
     };
     canvas.onmouseup = function(event){
@@ -309,13 +343,15 @@ function figure_name() {
 function triangle_new() {
     figure = 1;
 };
-
 function circle_new() {
     figure = 2;
+};
+function move() {
+    figure = 3;
 };
 function size() {
     figure = 4;
 };
-function move() {
-    figure = 3;
+function add_line() {
+    figure = 5;
 };

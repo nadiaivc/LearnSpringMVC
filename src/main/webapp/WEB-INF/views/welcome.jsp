@@ -27,6 +27,7 @@
     <button class="button" onclick="triangle_new()" value="Triangle">Three</button>
     <button class="button" onclick="move()" value="Move">Move</button>
     <button class="button" onclick="size()" value="Size">Size</button>
+    <button class="button" onclick="add_line()" value="Size">Add line</button>
     <p>
         Введите имя: <input type="text" id="inp1">
         <button onclick="figure_name()">OK</button>

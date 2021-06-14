@@ -1,5 +1,5 @@
 # LearnSpringMVC
-I did it for a very long time just for fun, I don't remember anything. But there were videos
+I did it for a very long time ago just for fun, so I don't remember anything. But I found some videos
 ## Authorization
 
 https://user-images.githubusercontent.com/47255730/121809958-9517e100-cc67-11eb-936b-065c69ee57f3.mp4
